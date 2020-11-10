@@ -4,7 +4,9 @@ int main()
 {
     List lst = {};
     ListConstructor (&lst, 10);
-    printf ("%d", ListVerificate (&lst));
+    InsertTail (&lst, 1);
+    InsertTail (&lst, 2);
+    InsertTail (&lst, 3);
     CreateDump (&lst);
     ListDestructor (&lst);
 
@@ -202,10 +204,11 @@ void InsertAllEmpty (List* lst, double num)
 
     lst->head = lst->empty_1;
     lst->tail = lst->empty_1;
-    lst->empty_1 = lst->elems[lst->empty_1].next;
+    empty_next;
 
-    lst->elems[lst->head].num = num;
+    lst->elems[lst->head].num    = num;
     lst->elems[lst->head].status = TAIL_N_EMPTY;
+    lst->elems[lst->head].next   = NOT_EXISTING_VERTEX;
 
     ass (lst);
     return;
@@ -220,9 +223,55 @@ void InsertHead (List* lst, double num)
         InsertAllEmpty (lst, num);
         return;
     }
+
+    no_empty_elems;
+
+    size_t old_head = lst->head;
+    lst->head = lst->empty_1;
+    empty_next;
+
+    lst->elems[lst->head].num = num;
+    lst->elems[lst->head].status = HEAD_N_EMPTY;
+    lst->elems[lst->head].next = old_head;
+
+    lst->elems[old_head].prev = lst->head;
+    if (old_head != lst->tail)
+        lst->elems[old_head].status = N_EMPTY;
+
+    ass (lst);
+    return;
 }
 
-void InsertTail (List* lst, double num);
+void InsertTail (List* lst, double num)
+{
+    ass (lst);
+
+    if (lst->tail == NOT_EXISTING_VERTEX)
+    {
+        InsertAllEmpty (lst, num);
+        return;
+    }
+
+    no_empty_elems;
+
+    size_t old_tail = lst->tail;
+    lst->tail = lst->empty_1;
+    empty_next;
+
+    lst->elems[lst->tail].num    = num;
+    lst->elems[lst->tail].status = TAIL_N_EMPTY;
+    lst->elems[lst->tail].prev   = old_tail;
+    lst->elems[lst->tail].next   = NOT_EXISTING_VERTEX;
+
+    lst->elems[old_tail].next = lst->tail;
+    if (old_tail == lst->head)
+        lst->elems[old_tail].status = HEAD_N_EMPTY;
+    else
+        lst->elems[old_tail].status = N_EMPTY;
+
+    ass (lst);
+    return;
+}
 
 void InsertBefore (List* lst, size_t el, double num);
 
@@ -246,7 +295,7 @@ void CreateDump (List* lst)
         fprintf (graph, "unit%u [style=\"filled\",      \
                                  fillcolor = \"#%X\"    \
                                  shape = record,        \
-                                 label = \"number: %u | \
+                                 label = \"number  %u | \
                                            value: %lf | \
                                     <prev> prev:   %u | \
                                     <next> next:   %u\"];\n",

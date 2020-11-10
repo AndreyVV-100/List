@@ -5,21 +5,33 @@
 
 #pragma warning (disable : 4996)
 
-#define ass(lst)    DUMP check = ListVerificate (lst);      \
+#define ass(lst)    {DUMP check = ListVerificate (lst);     \
                     if (check != OK)                        \
                     {                                       \
                         printf ("Something went wrong... "  \
                                 "Error number = %d", check);\
+                        CreateDump (lst);                   \
                         ListDestructor (lst);               \
                         exit (check);                       \
-                    }
+                    }}
 
 #define no_empty_elems  if (lst->empty_1 == NOT_EXISTING_VERTEX)            \
                         {                                                   \
                             printf ("Can`t insert the number: no place.");  \
+                            CreateDump (lst);                               \
                             ListDestructor (lst);                           \
-                            exit (check);                                   \
+                            exit (INSERT_FULL);                             \
                         }
+
+#define empty_next  lst->empty_1 = lst->elems[lst->empty_1].next;                       \
+                    if (lst->empty_1 != NOT_EXISTING_VERTEX)                            \
+                    {                                                                   \
+                        lst->elems[lst->empty_1].status =                               \
+                            (lst->elems[lst->empty_1].next == NOT_EXISTING_VERTEX) ?    \
+                            TAIL_EMPTY : HEAD_EMPTY;                                    \
+                    }
+
+#define ins_del_check
 
 const size_t NOT_EXISTING_VERTEX = -1;
 
@@ -50,7 +62,8 @@ enum DUMP
     PASS_FAILED     = 8,
 
     //Functions
-    INSERT_EMPTY    = 9
+    INSERT_EMPTY    = 9,
+    INSERT_FULL     = 10
 };
 
 struct Element
@@ -77,6 +90,8 @@ DUMP ListVerificate (List* lst);
 DUMP ElementsVerificate (List* lst);
 
 void ListDestructor (List* lst);
+
+void InsertAllEmpty (List* lst, double num);
 
 void InsertHead (List* lst, double num);
 
