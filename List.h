@@ -31,7 +31,13 @@
                             TAIL_EMPTY : HEAD_EMPTY;                                    \
                     }
 
-#define ins_del_check
+//ToDo: for list with size == 1 and size == 2
+#define do_empty(elem)  lst->elems[elem].num            = NAN;          \
+                        lst->elems[lst->empty_1].status = EMPTY;        \
+                        lst->elems[elem].next           = lst->empty_1; \
+                        lst->elems[elem].status         = HEAD_EMPTY;   
+
+//#define ins_del_check
 
 const size_t NOT_EXISTING_VERTEX = -1;
 
@@ -63,7 +69,8 @@ enum DUMP
 
     //Functions
     INSERT_EMPTY    = 9,
-    INSERT_FULL     = 10
+    INSERT_FULL     = 10,
+    DELETE_EMPTY    = 11
 };
 
 struct Element
@@ -81,6 +88,7 @@ struct List
     size_t tail    = 0;
     size_t size    = 0;
     size_t empty_1 = 0;
+    int sorted     = 0;
 };
 
 void ListConstructor (List* lst, size_t size);
@@ -91,22 +99,26 @@ DUMP ElementsVerificate (List* lst);
 
 void ListDestructor (List* lst);
 
-void InsertAllEmpty (List* lst, double num);
+size_t InsertEmpty (List* lst, double num);
 
-void InsertHead (List* lst, double num);
+size_t InsertHead (List* lst, double num);
 
-void InsertTail (List* lst, double num);
+size_t InsertTail (List* lst, double num);
 
-void InsertHead (List lst, double num);
+size_t InsertBefore (List* lst, size_t el, double num);
 
-void InsertTail (List lst, double num);
+size_t InsertAfter (List* lst, size_t el, double num);
 
-void InsertBefore (List* lst, size_t el, double num);
+void DeleteEmpty (List* lst);
 
-void InsertAfter (List* lst, size_t el, double num);
+void DeleteHead (List* lst);
+
+void DeleteTail (List* lst);
 
 void Delete (List* lst, size_t el);
 
 void CreateDump (List* lst);
+
+void Sort (List* lst);
 
 void TestColors();

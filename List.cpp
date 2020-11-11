@@ -4,10 +4,15 @@ int main()
 {
     List lst = {};
     ListConstructor (&lst, 10);
+
     InsertTail (&lst, 1);
-    InsertTail (&lst, 2);
-    InsertTail (&lst, 3);
+    size_t el2 = InsertTail (&lst, 2);
+    size_t el1 = InsertTail (&lst, 3);
+    InsertBefore (&lst, el1, 2.5);
+    Delete (&lst, el2);
+
     CreateDump (&lst);
+
     ListDestructor (&lst);
 
     return 0;
@@ -18,6 +23,7 @@ void ListConstructor (List* lst, const size_t size)
     assert (lst);
     assert (size);
 
+    lst->sorted = 1;
     lst->size = size;
     lst->elems = (Element*) calloc (size, sizeof (Element));
     assert (lst->elems);
@@ -190,13 +196,15 @@ void ListDestructor (List* lst)
     return;
 }
 
-void InsertAllEmpty (List* lst, double num)
+size_t InsertEmpty (List* lst, double num)
 {
     ass (lst);
 
     if (lst->head != NOT_EXISTING_VERTEX)
     {
-        printf ("Call function InsertAllEmpty isn't justified");
+        printf ("Call function InsertEmpty isn't justified");
+        CreateDump (lst);
+        ListDestructor (lst);
         exit (INSERT_EMPTY);
     }
 
@@ -210,19 +218,15 @@ void InsertAllEmpty (List* lst, double num)
     lst->elems[lst->head].status = TAIL_N_EMPTY;
     lst->elems[lst->head].next   = NOT_EXISTING_VERTEX;
 
-    ass (lst);
-    return;
+    return lst->head;
 }
 
-void InsertHead (List* lst, double num)
+size_t InsertHead (List* lst, double num)
 {
     ass (lst);
 
     if (lst->head == NOT_EXISTING_VERTEX)
-    {
-        InsertAllEmpty (lst, num);
-        return;
-    }
+        return InsertEmpty (lst, num);
 
     no_empty_elems;
 
@@ -238,19 +242,16 @@ void InsertHead (List* lst, double num)
     if (old_head != lst->tail)
         lst->elems[old_head].status = N_EMPTY;
 
-    ass (lst);
-    return;
+    lst->sorted = 0;
+    return lst->head;
 }
 
-void InsertTail (List* lst, double num)
+size_t InsertTail (List* lst, double num)
 {
     ass (lst);
 
     if (lst->tail == NOT_EXISTING_VERTEX)
-    {
-        InsertAllEmpty (lst, num);
-        return;
-    }
+        return InsertEmpty (lst, num);
 
     no_empty_elems;
 
@@ -269,19 +270,132 @@ void InsertTail (List* lst, double num)
     else
         lst->elems[old_tail].status = N_EMPTY;
 
+    return lst->tail;
+}
+
+size_t InsertBefore (List* lst, size_t el, double num)
+{
     ass (lst);
+    no_empty_elems;
+
+    if (el == lst->head)
+        return InsertHead (lst, num);
+
+    return InsertAfter (lst, lst->elems[el].prev, num);
+}
+
+size_t InsertAfter (List* lst, size_t el, double num)
+{
+    ass (lst);
+    no_empty_elems;
+
+    if (el == lst->tail)
+        return InsertTail (lst, num);
+
+    size_t el_ins = lst->empty_1;
+    empty_next;
+
+    lst->elems[el_ins].next = lst->elems[el].next;
+    lst->elems[el_ins].prev = el;
+
+    lst->elems[el].next                      = el_ins;
+    lst->elems[lst->elems[el_ins].next].prev = el_ins;
+
+    lst->elems[el_ins].num    = num;
+    lst->elems[el_ins].status = N_EMPTY;
+    
+    lst->sorted = 0;
+    return el_ins;
+}
+
+void DeleteEmpty (List* lst)
+{
+    ass (lst);
+
+    if (lst->head == NOT_EXISTING_VERTEX ||
+        lst->head != NOT_EXISTING_VERTEX &&
+        lst->head != lst->tail)
+    {
+        printf ("Call function DeleteEmpty isn't justified");
+        CreateDump (lst);
+        ListDestructor (lst);
+        exit (DELETE_EMPTY);
+    }
+
+    do_empty (lst->head);
+
+    lst->empty_1 = lst->head;
+    lst->head    = NOT_EXISTING_VERTEX;
+    lst->tail    = NOT_EXISTING_VERTEX;
+
+    Sort (lst);
     return;
 }
 
-void InsertBefore (List* lst, size_t el, double num);
+void DeleteHead (List* lst)
+{
+    ass (lst);
 
-void InsertAfter (List* lst, size_t el, double num);
+    if (lst->head == NOT_EXISTING_VERTEX)
+        return;
 
-void DeleteHead (List* lst);
+    if (lst->head == lst->tail)
+        DeleteEmpty (lst);
 
-void DeleteTail (List* lst);
+    size_t new_head = lst->elems[lst->head].next;
 
-void Delete (List* lst, size_t el);
+    do_empty (lst->head);
+
+    lst->head = new_head;
+    lst->elems[lst->head].prev = NOT_EXISTING_VERTEX;
+
+    if (lst->elems[lst->head].status != TAIL_N_EMPTY)
+        lst->elems[lst->head].status = HEAD_N_EMPTY;
+
+    lst->sorted = 0;
+    return;
+}
+
+void DeleteTail (List* lst)
+{
+    ass (lst);
+
+    if (lst->tail == NOT_EXISTING_VERTEX)
+        return;
+
+    if (lst->head == lst->tail)
+        return DeleteEmpty (lst);
+
+    size_t new_tail = lst->elems[lst->tail].prev;
+
+    do_empty (lst->tail);
+    lst->elems[lst->tail].prev = NOT_EXISTING_VERTEX;
+
+    lst->tail = new_tail;
+    lst->elems[lst->tail].next = NOT_EXISTING_VERTEX;
+    lst->elems[lst->tail].status = TAIL_N_EMPTY;
+
+    return;
+}
+
+void Delete (List* lst, size_t el)
+{
+    ass (lst);
+
+    if (el == lst->head)
+        return DeleteHead (lst);
+
+    if (el == lst->tail)
+        return DeleteTail (lst);
+
+    lst->elems[lst->elems[el].next].prev = lst->elems[el].prev;
+    lst->elems[lst->elems[el].prev].next = lst->elems[el].next;
+    
+    do_empty (el);
+    lst->elems[el].prev = NOT_EXISTING_VERTEX;
+    lst->sorted = 0;
+    return;
+}
 
 void CreateDump (List* lst)
 {
@@ -295,24 +409,31 @@ void CreateDump (List* lst)
         fprintf (graph, "unit%u [style=\"filled\",      \
                                  fillcolor = \"#%X\"    \
                                  shape = record,        \
-                                 label = \"number  %u | \
-                                           value: %lf | \
-                                    <prev> prev:   %u | \
-                                    <next> next:   %u\"];\n",
+                                 label = \"             \
+                                    <prev> Prev:   %u | \
+                                           Element %u | \
+                                           Value: %lf | \
+                                    <next> Next:   %u\"];\n",
                 i_list, 
-                lst->elems[i_list].status, 
+                lst->elems[i_list].status,
+                lst->elems[i_list].prev,
                 i_list, 
                 lst->elems[i_list].num,
-                lst->elems[i_list].prev,
                 lst->elems[i_list].next);
     }
+    
+    for (size_t i_list = 0; i_list < lst->size - 1; i_list++)
+        fprintf (graph, "unit%u -> unit%u [color = \"white\" truecolor = true];\n", 
+                 i_list, i_list + 1);
 
     for (size_t i_list = 0; i_list < lst->size; i_list++)
     {
         if (lst->elems[i_list].prev < NOT_EXISTING_VERTEX)
-            fprintf (graph, "unit%u:<prev> -> unit%u;\n", i_list, lst->elems[i_list].prev);
+            fprintf (graph, "unit%u:<prev> -> unit%u [color = \"darkgray\" constraint = false];\n", 
+                    i_list, lst->elems[i_list].prev);
         if (lst->elems[i_list].next < NOT_EXISTING_VERTEX)
-            fprintf (graph, "unit%u:<next> -> unit%u;\n", i_list, lst->elems[i_list].next);
+            fprintf (graph, "unit%u:<next> -> unit%u [color = \"blue\" constraint = false];\n", 
+                    i_list, lst->elems[i_list].next);
     }
 
     fprintf (graph, "}");
@@ -321,6 +442,39 @@ void CreateDump (List* lst)
     system ("dot -Tpng Graph\\out.dot -o Graph\\gr.png");
     system ("start Graph\\gr.png");
 
+    return;
+}
+
+void Sort (List* lst)
+{
+    ass (lst);
+
+    Element* new_elems = (Element*) calloc (lst->size, sizeof (*new_elems));
+
+    size_t i_elem = 0;
+    size_t elem_old = lst->head;
+    for (i_elem = 0; i_elem < lst->size && elem_old != NOT_EXISTING_VERTEX; i_elem++)
+    {
+        new_elems[i_elem] = lst->elems[elem_old];
+        new_elems[i_elem].prev = i_elem - 1;
+        new_elems[i_elem].next = i_elem + 1;
+        elem_old = lst->elems[elem_old].next;
+    }
+
+    new_elems[0].prev          = NOT_EXISTING_VERTEX;
+    new_elems[i_elem - 1].next = NOT_EXISTING_VERTEX;
+
+    size_t start_empty = i_elem;
+
+    for (i_elem; i_elem < lst->size; i_elem++)
+        new_elems[i_elem] = { NAN, NOT_EXISTING_VERTEX, i_elem + 1, EMPTY };
+
+    new_elems[start_empty].status = HEAD_EMPTY;
+    new_elems[i_elem - 1].status  = TAIL_EMPTY;
+
+    free (lst->elems);
+    lst->elems = new_elems;
+    lst->sorted = 1;
     return;
 }
 
