@@ -35,7 +35,8 @@
 #define do_empty(elem)  lst->elems[elem].num            = NAN;          \
                         lst->elems[lst->empty_1].status = EMPTY;        \
                         lst->elems[elem].next           = lst->empty_1; \
-                        lst->elems[elem].status         = HEAD_EMPTY;   
+                        lst->elems[elem].status         = HEAD_EMPTY;   \
+                        lst->empty_1                    = elem;
 
 //#define ins_del_check
 
@@ -122,3 +123,5 @@ void CreateDump (List* lst);
 void Sort (List* lst);
 
 void TestColors();
+
+size_t SlowFindPhysicByLogic (List* lst, size_t num);

@@ -11,6 +11,7 @@ int main()
     InsertBefore (&lst, el1, 2.5);
     Delete (&lst, el2);
 
+    printf ("%d", SlowFindPhysicByLogic (&lst, 1));
     CreateDump (&lst);
 
     ListDestructor (&lst);
@@ -495,4 +496,21 @@ void TestColors()
     CreateDump (&lst);
     ListDestructor (&lst);
     return;
+}
+
+size_t SlowFindPhysicByLogic (List* lst, size_t logic_num)
+{
+    ass (lst);
+
+    if (logic_num >= lst->size)
+        return NOT_EXISTING_VERTEX;
+
+    if (lst->sorted)
+        return logic_num;
+
+    size_t ret = lst->head;
+    for (logic_num; logic_num > 0 && ret != NOT_EXISTING_VERTEX; logic_num--)
+        ret = lst->elems[ret].next;
+
+    return ret;
 }
